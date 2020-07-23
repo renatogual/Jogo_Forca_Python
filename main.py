@@ -1,10 +1,13 @@
-# Importando a biblioteca random para escolher a palavra aleatóriamente da lista de palavras.txt
+# Hangman Game (Jogo da Forca) 
+# Programação Orientada a Objetos
+
+# Import
 import random
 
-# Tabuleiro
-lista_tabuleiro = ['''
+# Board (tabuleiro)
+board = ['''
 
->>>>>>>>>>Jogo da Forca<<<<<<<<<<
+>>>>>>>>>>Hangman<<<<<<<<<<
 
 +---+
 |   |
@@ -63,78 +66,88 @@ O   |
 =========''']
 
 
-class Forca:
-    # Declaração das variaveis auxiliares e de controle
-    def __init__(self, tabuleiro):
-        self.tabuleiro = tabuleiro
-        self.lista = []
-        self.count = 0
-        self.count2 = 0
-        self.count_letra_certa = []
-        self.count_letra_errada = []
+# Classe
+class Hangman:
 
-    # Escolhe uma palavra aleatória do arquivo "palavras.txt" para ser utilizada no Jogo
-    def escolha_palavra(self):
-        with open("palavras.txt", "r") as f:
-            palavra_escolhida = f.readlines()
-        return palavra_escolhida[random.randint(0, len(palavra_escolhida))].strip()
+	# Método Construtor
+	def __init__(self, word):
+		self.word = word
+		self.missed_letters = []
+		self.guessed_letters = []
+		
+	# Método para adivinhar a letra
+	def guess(self, letter):
+		if letter in self.word and letter not in self.guessed_letters:
+			self.guessed_letters.append(letter)
+		elif letter not in self.word and letter not in self.missed_letters:
+			self.missed_letters.append(letter)
+		else:
+			return False
+		return True
+		
+	# Método para verificar se o jogo terminou
+	def hangman_over(self):
+		return self.hangman_won() or (len(self.missed_letters) == 6)
+		
+	# Método para verificar se o jogador venceu
+	def hangman_won(self):
+		if '_' not in self.hide_word():
+			return True
+		return False
+		
+	# Método para não mostrar a letra no board
+	def hide_word(self):
+		rtn = ''
+		for letter in self.word:
+			if letter not in self.guessed_letters:
+				rtn += '_ '
+			else:
+				rtn += letter
+		return rtn
+		
+	# Método para checar o status do game e imprimir o board na tela
+	def print_game_status(self):
+		print (board[len(self.missed_letters)])
+		print ('\nPalavra: ' + self.hide_word())
+		print ('\nLetras erradas: ',) 
+		for letter in self.missed_letters:
+			print (letter,) 
+		print ()
+		print ('Letras corretas: ',)
+		for letter in self.guessed_letters:
+			print (letter,)
+		print ()
 
-    # Mostra o status do tabuleiro
-    def mostra_tabuleiro(self):
-        numero = self.count2
-        return self.tabuleiro[numero]
+# Método para ler uma palavra de forma aleatória do banco de palavras
+def rand_word():
+        with open("palavras.txt", "rt") as f:
+                bank = f.readlines()
+        return bank[random.randint(0,len(bank))].strip()
 
-    # Mostra a quantidade de letras que a palavra escolhida possui
-    def mostra_palavra(self):
-        self.palavra = [x for x in self.escolha_palavra()] #Aqui é onde a palavra escolhida é separada letra a letra
-        while self.count < len(self.palavra): #Aqui é onde é criado o tabuleiro das letras a serem descobertos da palavra
-            for i in self.palavra:
-                self.count += 1
-                self.lista.append("_")
+# Método Main - Execução do Programa
+def main():
 
-        return self.lista
+	# Objeto
+	game = Hangman(rand_word())
 
-    # Verifica se a letra digitada como parametro existe na palavra ou não
-    def verifica_letra(self, letra):
-        self.letra = letra
-        if letra in self.palavra:
-            for i in range(0, len(self.palavra)):
-                if self.palavra[i] == letra: #Caso a letra exista na palavra, verifica em qual indice ela esta para ser adicionada
-                    self.lista[i] = letra
-            self.count_letra_certa.append(letra)
-        else:
-            self.count_letra_errada.append(letra)
-            self.count2 += 1
+	# Enquanto o jogo não tiver terminado, print do status, solicita uma letra e faz a leitura do caracter
+	while not game.hangman_over():
+		game.print_game_status()
+		user_input = input('\nDigite uma letra: ')
+		game.guess(user_input)
 
-    # Verifica se o jogo foi vencido ou perdido
-    def status_jogo(self):
-        if self.lista == self.palavra:
-            print("Parabens, você venceu o jogo!")
-            return False
-        elif self.count2 == 6:
-            print("Game Over!")
-            print("A palavra certa era: ", self.escolha_palavra())
-            return False
+	# Verifica o status do jogo
+	game.print_game_status()	
 
+	# De acordo com o status, imprime mensagem na tela para o usuário
+	if game.hangman_won():
+		print ('\nParabéns! Você venceu!!')
+	else:
+		print ('\nGame over! Você perdeu.')
+		print ('A palavra era ' + game.word)
+		
+	print ('\nFoi bom jogar com você! Agora vá estudar!\n')
 
-# Enquanto o jogo não tiver terminado, mostra o status do tabuleiro e faz a leitura da letra
+# Executa o programa		
 if __name__ == "__main__":
-    val = Forca(lista_tabuleiro) # Instancia o objeto val na classe Forca
-    while True:
-        print(val.mostra_tabuleiro())
-        print("Palavra: ",*val.mostra_palavra()) # O asterisco nos nomes descompactam a lista, para mostrar apenas os valores sem as aspas e virgulas
-        print("Letras certas: ", *val.count_letra_certa)
-        print("Letras erradas: ", *val.count_letra_errada)
-        letra = input("Digite uma letra: ")
-        val.verifica_letra(letra)
-        val.status_jogo()
-
-
-
-        
-
-
-
-
-        
-        
+	main()
